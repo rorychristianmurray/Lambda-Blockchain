@@ -4,8 +4,9 @@ import requests
 import sys
 import json
 
+DIFFICUTLY = 3
 
-def proof_of_work(block):
+def proof_of_work(self, block):
     """
     Simple Proof of Work Algorithm
     Stringify the block and look for a proof.
@@ -13,7 +14,23 @@ def proof_of_work(block):
     in an effort to find a number that is a valid proof
     :return: A valid proof for the provided block
     """
-    pass
+    # turns the last block into a json string
+    # with the keys sorted (to maintain integrity of hash)
+    block_string = json.dumps(self.last_block, sort_keys=True)
+
+    # start looking for proof at zero
+    proof = 0
+
+    # run while loop and iterate until made enough
+    # guesses to stumble on answer, iterating up by 
+    # 1 each time
+    while self.valid_proof(block_string, proof) is False:
+        proof += 1
+
+    # when find valid proof to make the hash work
+    # return it
+    return proof
+    
 
 
 def valid_proof(block_string, proof):
@@ -27,7 +44,19 @@ def valid_proof(block_string, proof):
     correct number of leading zeroes.
     :return: True if the resulting hash is a valid proof, False otherwise
     """
-    pass
+
+    # create guess by combining block_string and proof
+    # and encoding as bytes
+    guess = f'{block_string}{proof}'.encode()
+
+    # hash guess to get hexidecimal representation
+    guess_hash = hashlib.sha256(guess).hexdigest()
+
+    # return boolean if guess hashed with specified
+    # amount of nonce values
+    return guess_hash[:DIFFICULTY] == "0" * DIFFICULTY
+
+    
 
 
 if __name__ == '__main__':

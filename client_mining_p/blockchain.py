@@ -10,7 +10,6 @@ from flask import Flask, jsonify, request
 
 DIFFICULTY = 3
 
-
 class Blockchain(object):
     def __init__(self):
         self.chain = []
@@ -62,7 +61,7 @@ class Blockchain(object):
         # Use hashlib.sha256 to create a hash
         # It requires a `bytes-like` object, which is what
         # .encode() does.
-        # It convertes the string to bytes.
+        # It converts the string to bytes.
         # We must make sure that the Dictionary is Ordered,
         # or we'll have inconsistent hashes
 
@@ -85,20 +84,6 @@ class Blockchain(object):
     def last_block(self):
         return self.chain[-1]
 
-    def proof_of_work(self, block):
-        """
-        Simple Proof of Work Algorithm
-        Stringify the block and look for a proof.
-        Loop through possibilities, checking each one against `valid_proof`
-        in an effort to find a number that is a valid proof
-        :return: A valid proof for the provided block
-        """
-        block_string = json.dumps(self.last_block, sort_keys=True)
-        proof = 0
-        while self.valid_proof(block_string, proof) is False:
-            proof += 1
-
-        return proof
 
     @staticmethod
     def valid_proof(block_string, proof):
@@ -113,8 +98,15 @@ class Blockchain(object):
         :return: True if the resulting hash is a valid proof, False otherwise
         """
 
+        # create guess by combining block_string and proof
+        # and encoding as bytes
         guess = f'{block_string}{proof}'.encode()
+
+        # hash guess to get hexidecimal representation
         guess_hash = hashlib.sha256(guess).hexdigest()
+
+        # return boolean if guess hashed with specified
+        # amount of nonce values
 
         return guess_hash[:DIFFICULTY] == "0" * DIFFICULTY
 
@@ -152,6 +144,14 @@ def full_chain():
         'chain': blockchain.chain
     }
     return jsonify(response), 200
+
+# add an endpoint called last_block that 
+# returns the last block in the chain
+@app.route('/last_block', methods=['GET'])
+def send_last_block():
+    response = {
+        'last_block': self.chain[-1]
+    }
 
 
 # Run the program on port 5000
