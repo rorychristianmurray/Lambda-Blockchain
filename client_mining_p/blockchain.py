@@ -121,20 +121,45 @@ node_identifier = str(uuid4()).replace('-', '')
 blockchain = Blockchain()
 
 
-@app.route('/mine', methods=['GET'])
+@app.route('/mine', methods=['POST'])
 def mine():
-    # Run the proof of work algorithm to get the next proof
-    proof = blockchain.proof_of_work(blockchain.last_block)
+    # accept a POST
+    # pull data out of POST
+    data = request.get_json()
 
-    # Forge the new Block by adding it to the chain with the proof
-    previous_hash = blockchain.hash(blockchain.last_block)
-    new_block = blockchain.new_block(proof, previous_hash)
+    # check that 'proof' and 'id' are present
+    if not data['proof'] or not data['id']:
+        response = {
+            'message': 'You done mucked it up now'
+        }
+        return jsonify(response), 400
 
-    response = {
-        'block': new_block
-    }
+    ## receive incoming proof
+    rec_proof = data.get('proof')
 
-    return jsonify(response), 200
+    ## if proof is valid
+    ## and first valid proof received
+    ## return positive message of sunshine
+
+    # get last block
+    last_block = blockchain.last_block
+
+    # stringify last_block
+    stringy_block = json.dumps(last_block, sort_keys=True)
+
+    if blockchain.valid_proof(stringy_block, rec_proof):
+        previous_hash = blockchain.hash(last_block)
+        block = blockchain.new_block(rec_proof, previous_hash)
+        
+        response = {
+            'message': 'Created new block'
+        }
+        return jsonify(response), 200
+    else:
+        response = {
+            'message': 'Mining failes'
+        }
+        return jsonify(response), 400
 
 
 @app.route('/chain', methods=['GET'])
@@ -150,8 +175,9 @@ def full_chain():
 @app.route('/last_block', methods=['GET'])
 def send_last_block():
     response = {
-        'last_block': self.chain[-1]
+        'last_block': blockchain.last_block
     }
+    return jsonify(response), 200
 
 
 # Run the program on port 5000
