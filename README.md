@@ -16,3 +16,19 @@ https://imgur.com/xSlgvtl
 * Basic Wallet (basic_wallet_p)
 
 Based on blockchain by dvf.  Used under MIT license:  https://github.com/dvf/blockchain
+
+
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+flake8 = "*"
+
+[packages]
+requests = ">=2.20.0"
+flask = ">=1.0.0"
+
+[requires]
+python_version = "3.7"
