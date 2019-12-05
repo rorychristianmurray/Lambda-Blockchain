@@ -123,43 +123,41 @@ blockchain = Blockchain()
 
 @app.route('/mine', methods=['POST'])
 def mine():
-    # accept a POST
-    # pull data out of POST
-    data = request.get_json()
-
-    # check that 'proof' and 'id' are present
-    if not data['proof'] or not data['id']:
-        response = {
-            'message': 'You done mucked it up now'
-        }
+    # handle non-json response
+    try: values = request.get_json()
+    except ValueError:
+        print("Error: non-json response")
+        print("response returned:")
+        print(request)
+        return "Error"
+    
+    required = ['proof', 'id']
+    if not all(k in values for k in required ):
+        response = {'message': "Missing proof or id"}
         return jsonify(response), 400
 
-    ## receive incoming proof
-    rec_proof = data.get('proof')
+    submitted_proof = values['proof']
 
-    ## if proof is valid
-    ## and first valid proof received
-    ## return positive message of sunshine
-
-    # get last block
+    # determine if proof is valid
     last_block = blockchain.last_block
-
-    # stringify last_block
-    stringy_block = json.dumps(last_block, sort_keys=True)
-
-    if blockchain.valid_proof(stringy_block, rec_proof):
+    last_block_string = json.dumps(last_block, sort_keys=True)
+    if blockchain.valid_proof(last_block_string, submitted_proof):
+        # forge new block
         previous_hash = blockchain.hash(last_block)
-        block = blockchain.new_block(rec_proof, previous_hash)
+        new_block = blockchain.new_block(submitted_proof, previous_hash)
         
         response = {
-            'message': 'Created new block'
+            'message': 'New Block Forged',
+            'block': new_block
         }
         return jsonify(response), 200
     else:
         response = {
-            'message': 'Mining failes'
+            'message': 'Proof invalid or already submitted'
         }
-        return jsonify(response), 400
+        return jsonify(response), 200
+
+
 
 
 @app.route('/chain', methods=['GET'])
